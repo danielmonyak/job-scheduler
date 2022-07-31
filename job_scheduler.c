@@ -19,6 +19,9 @@ To run: ./job_scheduler CONCURRENCY
 #define JOBSLEN 1000 /* maximum JOBS length */
 #define JOBQLEN 100  /* maximum JOBQ length */
 
+#define CONCUR_DEFAULT 10
+#define SLEEP_TIME_DEFAULT 20
+
 int CONCUR;        /* user-defined job concurrency */
 int NWORKING;      /* number of currently working jobs */
 job JOBS[JOBSLEN]; /* permanent array of submitted jobs */
@@ -29,19 +32,28 @@ int main(int argc, char **argv)
     char *fnerr;   /* filename where main stderr is redirected */
     pthread_t tid; /* thread ID */
 
-    if (argc != 2)
-    {
-        printf("Usage: %s CONCURRENCY\n", argv[0]);
-        exit(EXIT_SUCCESS);
+    if (argc < 2) {
+        CONCUR = CONCUR_DEFAULT;
+        SLEEP_TIME = SLEEP_TIME_DEFAULT
+    } else{
+        CONCUR = atoi(argv[1]);
+        if (CONCUR < 1) {
+            CONCUR = 1;
+        } else if (CONCUR > 15) {
+            CONCUR = 10;
+        }
+        
+        if (argc < 3) {
+            SLEEP_TIME = SLEEP_TIME_DEFAULT;
+        } else {
+            SLEEP_TIME = atoi(argv[2]);
+            if (SLEEP_TIME < 0.1) || (SLEEP_TIME > 500) {
+                SLEEP_TIME = 20;
+            }
+        }
     }
 
-    CONCUR = atoi(argv[1]);
-    if (CONCUR < 1)
-        CONCUR = 1;
-    else if (CONCUR > 8)
-        CONCUR = 8;
-
-    printf("Concurrency: %d\n\n", CONCUR);
+    printf("Running %d jobs at a time\n\n", CONCUR);
 
     /* redirect main stderr to file */
     fnerr = malloc(sizeof(char) * (strlen(argv[0]) + 5));
