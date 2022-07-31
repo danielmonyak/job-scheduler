@@ -63,11 +63,43 @@ int main(int argc, char **argv)
     JOBQ = queue_init(JOBQLEN);
 
     /* use a new thread to complete jobs */
-    pthread_create(&tid, NULL, complete_jobs, NULL);
+    //pthread_create(&tid, NULL, complete_jobs, NULL);
 
     /* use the main thread to handle input */
-    handle_input();
+    //handle_input();
 
+    char **args;
+    pid = fork();
+    while read line {
+        
+    }
+    if (pid == 0) /* child process */
+    {
+        dup2(open_log(jp->fnout), STDOUT_FILENO); /* redirect job stdout */
+        dup2(open_log(jp->fnerr), STDERR_FILENO); /* redirect job stderr */
+        args = get_args(jp->cmd);
+        args = 
+        execvp(args[0], args);
+        fprintf(stderr, "Error: command execution failed for \"%s\"\n", args[0]);
+        perror("execvp");
+        exit(EXIT_FAILURE);
+    }
+    else if (pid > 0) /* parent process */
+    {
+        waitpid(pid, &jp->estat, WUNTRACED);
+        jp->stat = "complete";
+        jp->stop = current_datetime_str();
+
+        if (!WIFEXITED(jp->estat))
+            fprintf(stderr, "Child process %d did not terminate normally!\n", pid);
+    }
+    else
+    {
+        fprintf(stderr, "Error: process fork failed\n");
+        perror("fork");
+        exit(EXIT_FAILURE);
+    }
+    
     exit(EXIT_SUCCESS);
 }
 
